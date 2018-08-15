@@ -1,0 +1,21 @@
+{
+  "name": "sol",
+  "version": "1.0.0",
+  "description": "Index StoriesOnline",
+  "main": "server.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "sol",
+    "index",
+    "sax"
+  ],
+  "author": "Simon P. Martin <havvoric@gmail.com>",
+  "license": "ISC",
+  "dependencies": {
+    "async": "^2.6.1",
+    "request": "^2.88.0",
+    "sax": "file:sax"
+  }
+}
