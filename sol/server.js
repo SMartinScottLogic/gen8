@@ -3,9 +3,11 @@ const sax = require('sax')
 const URL = require('url')
 const async = require('async')
 
+const CONCURRANCY = 1
+
 const q = async.queue(function(task, callback) {
 	return fetch(task, callback)
-}, 2);
+}, CONCURRANCY);
 
 q.push({mode: 'index', url: 'http://storiesonline.net/library/authors.php?let=A'})
 
@@ -45,7 +47,7 @@ function processIndexBody(url, body) {
 		}
 	}
 	parser.onopentag = function(tag) {
-		if(tag.name === 'th' && tag.attributes.class === 'l') {
+		if(tag.name === 'th' && hasClass(tag, 'l')) {
 			//console.log('onopentag', 'author', tag)
 			in_author = true
 			author_name = ""
@@ -57,7 +59,7 @@ function processIndexBody(url, body) {
 		}
 	}
 	parser.onclosetag = function(tag) {
-		if(tag.name === 'th' && tag.attributes.class === 'l') {
+		if(tag.name === 'th' && hasClass(tag, 'l')) {
 			//console.log('onclosetag', 'author', tag)
 			console.log('onclosetag', 'author', {link: URL.resolve(url, author_link), name: author_name})
 			q.push({mode: 'author', url: URL.resolve(url, author_link)})
@@ -75,7 +77,8 @@ function processIndexBody(url, body) {
 }
 
 function processAuthorBody(url, body) {
-	console.log('processAuthorBody', url, body)
+	let in_lc_block = false
+
 	const parser = sax.parser(false, {trim: true, lowercase: true, normalize: true})
 	parser.onerror = function(e) {
 		console.log('error', e)
@@ -85,6 +88,12 @@ function processAuthorBody(url, body) {
 	}
 	parser.onopentag = function(tag) {
 		console.log('onopentag', tag)
+		if(tag.name === 'td' && hasClass(tag, 'lc', 2)) {
+			console.log('onopentag', 'lc', tag)
+		}
+		if(tag.name === 'td' && hasClass(tag, 'l')) {
+			console.log('onopentag', 'l', tag)
+		}
 	}
 	parser.onclosetag = function(tag) {
 		console.log('onclosetag', tag)
@@ -93,4 +102,15 @@ function processAuthorBody(url, body) {
 		console.log('onend')
 	}
 	parser.write(body).close();
+}
+
+
+function hasClass(tag, cls, max_len) {
+	max_len = max_len || 0
+	const classes = (tag.attributes.class || "").split(/\s+/) || []
+	return classes.some(element => {
+		const head = (max_len > 0 ? element.substring(0, max_len) : element)
+		console.log('hasClass', head, cls, max_len)
+		return head === cls
+	})
 }
