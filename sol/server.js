@@ -84,19 +84,25 @@ function processAuthorBody(url, body) {
 		console.log('error', e)
 	}
 	parser.ontext = function(text) {
-		console.log('text', text)
+		if(in_lc_block) {
+			console.log('text', 'lc', text)
+		}
 	}
 	parser.onopentag = function(tag) {
-		console.log('onopentag', tag)
 		if(tag.name === 'td' && hasClass(tag, 'lc', 2)) {
 			console.log('onopentag', 'lc', tag)
-		}
-		if(tag.name === 'td' && hasClass(tag, 'l')) {
-			console.log('onopentag', 'l', tag)
+			in_lc_block = true
+		} else if(in_lc_block) {
+			console.log('onopentag', 'lc', tag)
 		}
 	}
 	parser.onclosetag = function(tag) {
-		console.log('onclosetag', tag)
+		if(tag.name === 'td' && hasClass(tag, 'lc', 2)) {
+			console.log('onclosetag', 'lc', tag)
+			in_lc_block = false
+		} else if(in_lc_block) {
+			console.log('onclosetag', 'lc', tag)
+		}
 	}
 	parser.onend = function() {
 		console.log('onend')
@@ -110,7 +116,6 @@ function hasClass(tag, cls, max_len) {
 	const classes = (tag.attributes.class || "").split(/\s+/) || []
 	return classes.some(element => {
 		const head = (max_len > 0 ? element.substring(0, max_len) : element)
-		console.log('hasClass', head, cls, max_len)
 		return head === cls
 	})
 }
