@@ -78,6 +78,7 @@ function processIndexBody(url, body) {
 
 function processAuthorBody(url, body) {
 	let in_lc_block = false
+	let in_b_block = false
 
 	const parser = sax.parser(false, {trim: true, lowercase: true, normalize: true})
 	parser.onerror = function(e) {
@@ -85,7 +86,8 @@ function processAuthorBody(url, body) {
 	}
 	parser.ontext = function(text) {
 		if(in_lc_block) {
-			console.log('text', 'lc', text)
+			text = text.replace(/\s*:\s*$/, '')
+			console.log(in_b_block ? 'b' : 'nb', text)
 		}
 	}
 	parser.onopentag = function(tag) {
@@ -93,7 +95,10 @@ function processAuthorBody(url, body) {
 			console.log('onopentag', 'lc', tag)
 			in_lc_block = true
 		} else if(in_lc_block) {
-			console.log('onopentag', 'lc', tag)
+			if(tag.name === 'b') {
+				in_b_block = true
+			}
+			console.log('open', tag)
 		}
 	}
 	parser.onclosetag = function(tag) {
@@ -101,7 +106,10 @@ function processAuthorBody(url, body) {
 			console.log('onclosetag', 'lc', tag)
 			in_lc_block = false
 		} else if(in_lc_block) {
-			console.log('onclosetag', 'lc', tag)
+			if(tag.name === 'b') {
+				in_b_block = false
+			}
+			console.log('close', tag)
 		}
 	}
 	parser.onend = function() {
